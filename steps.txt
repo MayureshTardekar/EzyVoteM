@@ -1,0 +1,12 @@
+*** Steps To Start the project ***
+
+MongoDB Connection: Ensure MongoDB is accessible.
+
+Backend Server: Start the backend and test with Postman.
+
+Frontend Server: Start the frontend and test in the browser.
+
+Debugging: Resolve any issues step by step.
+
+
+npm run deploy

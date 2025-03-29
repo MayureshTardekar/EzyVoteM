@@ -1,0 +1,16 @@
+// Add Custom Network
+
+Network name
+Vlota
+
+RPC URL
+https://volta-rpc.energyweb.org
+
+Chain ID
+73799
+
+Currency Symbol
+VT
+
+Block Explorer URL
+https://volta-explorer.energyweb.org

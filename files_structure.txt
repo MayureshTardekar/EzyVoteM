@@ -1,0 +1,89 @@
+Directory structure:
+└── malrakesh-ezyvote/
+    ├── Volta.txt
+    ├── codes.txt
+    ├── eslint.config.js
+    ├── files_structure.txt
+    ├── hello.txt
+    ├── index.html
+    ├── package.json
+    ├── postcss.config.js
+    ├── postman.txt
+    ├── steps.txt
+    ├── tailwind.config.js
+    ├── tsconfig.app.json
+    ├── tsconfig.json
+    ├── tsconfig.node.json
+    ├── vite.config.ts
+    ├── backend/
+    │   ├── package-lock.json
+    │   ├── package.json
+    │   ├── server.js
+    │   ├── config/
+    │   │   └── adminWallets.json
+    │   ├── controllers/
+    │   │   ├── adminController.js
+    │   │   └── authController.js
+    │   ├── middleware/
+    │   │   └── verifyAdmin.js
+    │   └── routes/
+    │       ├── adminRoutes.js
+    │       └── authRoutes.js
+    ├── favicon/
+    │   └── site.webmanifest
+    └── src/
+        ├── App.tsx
+        ├── i18n.js
+        ├── index.css
+        ├── main.tsx
+        ├── vite-env.d.ts
+        ├── components/
+        │   ├── BackToTopButton.tsx
+        │   ├── Button.tsx
+        │   ├── Card.tsx
+        │   ├── DashboardAnalytics.tsx
+        │   ├── Footer.tsx
+        │   ├── FooterAbout.tsx
+        │   ├── FooterContact.tsx
+        │   ├── FooterPrivacyPolicy.tsx
+        │   ├── LanguageSelector.tsx
+        │   ├── LoadingSpinner.tsx
+        │   ├── NavUnderline.tsx
+        │   ├── Navbar.tsx
+        │   ├── Sidebar.tsx
+        │   ├── TermsAndConditionsPopup.tsx
+        │   ├── UpcomingElections.tsx
+        │   └── WalletContext.tsx
+        ├── locales/
+        │   ├── bn/
+        │   │   └── translation.json
+        │   ├── en/
+        │   │   └── translation.json
+        │   ├── gu/
+        │   │   └── translation.json
+        │   ├── hi/
+        │   │   └── translation.json
+        │   ├── mr/
+        │   │   └── translation.json
+        │   └── ta/
+        │       └── translation.json
+        ├── pages/
+        │   ├── About.tsx
+        │   ├── AdminDashboard.tsx
+        │   ├── Contact.tsx
+        │   ├── CreateEvent.tsx
+        │   ├── CreateSecurePage.tsx
+        │   ├── DownloadReports.tsx
+        │   ├── Home.tsx
+        │   ├── LiveResults.tsx
+        │   ├── Notifications.tsx
+        │   ├── Privacy.tsx
+        │   ├── Reports.tsx
+        │   ├── SecurelyVoting.tsx
+        │   ├── SystemLogs.tsx
+        │   ├── Tutorials.tsx
+        │   ├── UserDashboard.tsx
+        │   ├── ViewPastElections.tsx
+        │   ├── VoteNow.tsx
+        │   └── VotingHistory.tsx
+        └── sounds/

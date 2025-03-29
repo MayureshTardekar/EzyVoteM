@@ -1,0 +1,209 @@
+import React, { useEffect, useState } from "react";
+import { Clock } from "lucide-react";
+import Card from "../components/Card";
+import Button from "../components/Button";
+import { useNavigate, useParams } from "react-router-dom";
+import { toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
+import { ethers } from "ethers";
+import { useWallet } from "../components/WalletContext";
+
+const VoteNow = () => {
+  const { eventId } = useParams(); // Get the eventId from the URL
+  const navigate = useNavigate();
+  const [event, setEvent] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
+  const [voted, setVoted] = useState(false);
+  const [selectedCandidate, setSelectedCandidate] = useState<number | null>(null);
+  const [timeRemaining, setTimeRemaining] = useState("");
+  const { walletAddress, isWalletConnected, connectWallet } = useWallet();
+
+  useEffect(() => {
+    const fetchEvent = async () => {
+      try {
+        // Fetch event data from the backend
+        const response = await fetch(`http://localhost:5000/api/events/${eventId}`);
+        if (!response.ok) {
+          throw new Error(`HTTP error! Status: ${response.status}`);
+        }
+        const data = await response.json();
+        setEvent(data);
+      } catch (error) {
+        console.error("Error fetching event:", error);
+        toast.error("Failed to fetch event. Please check your connection or try again later.");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchEvent();
+  }, [eventId]);
+
+  const handleVote = async () => {
+    if (!isWalletConnected) {
+      toast.error("Please connect your wallet to vote.");
+      return;
+    }
+
+    if (selectedCandidate === null) {
+      toast.error("Please select a candidate before submitting your vote.");
+      return;
+    }
+
+    try {
+      const provider = new ethers.providers.Web3Provider(window.ethereum);
+      const signer = provider.getSigner();
+      const walletAddress = await signer.getAddress();
+
+      // Step 1: Request MetaMask transaction confirmation (send fees to the network)
+      const tx = await signer.sendTransaction({
+        to: ethers.constants.AddressZero, // Sending to the zero address (network fees only)
+        value: ethers.utils.parseEther("0.01"), // Optional: Add value if needed
+      });
+      console.log("Transaction sent:", tx.hash);
+
+      // Wait for the transaction to be mined
+      await tx.wait();
+      console.log("Transaction confirmed.");
+
+      // Step 2: Request signature
+      const message = "Please sign this message to confirm your vote";
+      const signature = await signer.signMessage(message);
+      console.log("Signature received:", signature);
+
+      // Step 3: Send vote to the backend
+      console.log("Sending vote to backend:", {
+        eventId,
+        candidateIndex: selectedCandidate,
+        signature,
+        walletAddress,
+      });
+
+      const voteResponse = await fetch(`http://localhost:5000/api/vote`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          eventId,
+          candidateIndex: selectedCandidate,
+          signature,
+          walletAddress,
+        }),
+      });
+
+      if (!voteResponse.ok) {
+        const errorResponse = await voteResponse.text();
+        console.error("Failed to record vote. Server response:", errorResponse);
+        throw new Error(errorResponse || "Failed to record vote.");
+      }
+
+      // Step 4: Log candidate vote counts to the console
+      if (event?.candidates) {
+        event.candidates.forEach((candidate: any, index: number) => {
+          console.log(`${candidate.name}: ${index === selectedCandidate ? 1 : 0}`);
+        });
+      }
+
+      // Step 5: Show success toast message
+      toast.success("Vote recorded successfully!");
+      setVoted(true);
+    } catch (error) {
+      console.error("Error voting:", error);
+      toast.error("Failed to record vote. Please try again.");
+    }
+  };
+
+  const formatDate = (dateString: string): string => {
+    const date = new Date(dateString);
+    const day = String(date.getDate()).padStart(2, "0");
+    const month = String(date.getMonth() + 1).padStart(2, "0");
+    const year = date.getFullYear();
+    return `${day}/${month}/${year}`;
+  };
+
+  const calculateTimeRemaining = (endDate: string): string => {
+    const now = new Date();
+    const end = new Date(endDate);
+    const diff = end.getTime() - now.getTime();
+
+    if (diff <= 0) return "Voting Ended";
+
+    const hours = Math.floor(diff / (1000 * 60 * 60));
+    const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+    const seconds = Math.floor((diff % (1000 * 60)) / 1000);
+
+    return `${hours}h ${minutes}m ${seconds}s`;
+  };
+
+  useEffect(() => {
+    if (event) {
+      const interval = setInterval(() => {
+        setTimeRemaining(calculateTimeRemaining(event.endDate));
+      }, 1000);
+      return () => clearInterval(interval);
+    }
+  }, [event]);
+
+  if (loading) return <p className="text-center">Loading...</p>;
+  if (!event) return <p className="text-center text-gray-600">Event not found.</p>;
+
+  return (
+    <div className="min-h-screen bg-gray-100 py-8">
+      <header className="mb-8 text-center">
+        <h1 className="text-3xl font-bold text-indigo-700">Vote Now</h1>
+        <p className="mt-2 text-gray-600">Participate in active elections and make your voice heard.</p>
+      </header>
+
+      <Card className="mx-auto max-w-4xl p-6">
+        {/* Countdown Timer */}
+        <div className="flex items-center justify-center mb-6 text-lg font-semibold text-gray-700">
+          <Clock className="w-6 h-6 mr-2" />
+          <span>{timeRemaining}</span>
+        </div>
+
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="text-xl font-semibold text-gray-800">{event.title}</h2>
+          <div className="flex items-center gap-2 text-gray-500">
+            <span>{formatDate(event.endDate)}</span>
+          </div>
+        </div>
+
+        <div className="space-y-4">
+          {event.candidates.map((candidate: any, index: number) => (
+            <label
+              key={index}
+              className={`flex items-center justify-between p-4 bg-white rounded-lg shadow-sm cursor-pointer ${
+                selectedCandidate === index ? "border-2 border-indigo-500" : ""
+              }`}
+            >
+              <div>
+                <h3 className="font-semibold">{candidate.name}</h3>
+                <p className="text-sm text-gray-600">{candidate.bio}</p>
+              </div>
+              <input
+                type="radio"
+                name="candidate"
+                value={index}
+                checked={selectedCandidate === index}
+                onChange={() => setSelectedCandidate(index)}
+                className="ml-4"
+                disabled={voted || timeRemaining === "Voting Ended"}
+              />
+            </label>
+          ))}
+        </div>
+
+        <div className="flex justify-end mt-6">
+          <Button
+            onClick={handleVote}
+            variant="primary"
+            disabled={voted || timeRemaining === "Voting Ended" || selectedCandidate === null}
+          >
+            {voted ? "Voted" : "Submit Vote"}
+          </Button>
+        </div>
+      </Card>
+    </div>
+  );
+};
+
+export default VoteNow;

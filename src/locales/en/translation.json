@@ -1,0 +1,192 @@
+{
+  "hero": {
+    "welcome": "Welcome to EzyVote",
+    "description": "A decentralized voting platform powered by blockchain technology. Secure, transparent, and easy to use.",
+    "connectWallet": "Connect Wallet",
+    "disconnectWallet": "Disconnect"
+  },
+  "features": [
+    {
+      "title": "Create Events",
+      "description": "Easily create voting events with customizable options and participant limits."
+    },
+    {
+      "title": "Secure Voting",
+      "description": "Blockchain-based voting ensures transparency and prevents tampering."
+    },
+    {
+      "title": "Real-Time Results",
+      "description": "View live voting progress with interactive graphs and instant updates."
+    }
+  ],
+  "howItWorksTitle": "How It Works",
+  "howItWorks": [
+    {
+      "step": "1",
+      "title": "Register",
+      "description": "Sign up for free and create your account."
+    },
+    {
+      "step": "2",
+      "title": "Create an Event",
+      "description": "Setup a voting event for your occasion."
+    },
+    {
+      "step": "3",
+      "title": "Vote Securely",
+      "description": "Share the link and let participants vote securely."
+    },
+    {
+      "step": "4",
+      "title": "View Results",
+      "description": "Track live tally results and details."
+    }
+  ],
+  "testimonialsTitle": "What Our Users Say",
+  "testimonials": [
+    {
+      "name": "Riya Shukla",
+      "feedback": "EzyVote made our team elections so smooth and secure!",
+      "image": "https://shorturl.at/dlZsR"
+    },
+    {
+      "name": "Mayank Solanki",
+      "feedback": "The real-time results were a game-changer for us!",
+      "image": "https://shorturl.at/wOuoU"
+    },
+    {
+      "name": "Bhoomika Shetty",
+      "feedback": "I loved how easy it was to set up an event and start voting.",
+      "image": "https://shorturl.at/q0h9W"
+    },
+    {
+      "name": "Suraj Yadav",
+      "feedback": "The platform is intuitive and incredibly secure.",
+      "image": "https://shorturl.at/E9dPa"
+    },
+    {
+      "name": "Satyam C.",
+      "feedback": "Great for organizing quick and fair elections!",
+      "image": "https://shorturl.at/f2HmS"
+    },
+    {
+      "name": "Ankit Pal",
+      "feedback": "Blockchain technology makes this platform unbeatable!",
+      "image": "https://shorturl.at/lv3PI"
+    }
+  ],
+  "funFactsTitle": "Fun Facts About EzyVote",
+  "funFacts": [
+    "Blockchain technology ensures data immutability and tamper-resistance.",
+    "Did you know? The first known blockchain was created by Satoshi Nakamoto.",
+    "Voting on the blockchain reduces potential fraud by up to 90%.",
+    "EzyVote processes votes in an average of 10 seconds!"
+  ],
+  "statistics": [
+    { "value": "500+", "label": "Events Created" },
+    { "value": "10,000+", "label": "Votes Cast" },
+    { "value": "99.9%", "label": "Uptime Guarantee" }
+  ],
+  "faq": {
+    "heading": "Frequently Asked Questions",
+    "items": [
+      {
+        "question": "What is EzyVote?",
+        "answer": "EzyVote is a blockchain-based voting platform designed for security and transparency."
+      },
+      {
+        "question": "How does EzyVote ensure security?",
+        "answer": "Using blockchain technology, EzyVote guarantees votes are immutable and tamper-proof."
+      },
+      {
+        "question": "Can I use EzyVote for large scale elections?",
+        "answer": "Currently, EzyVote is well-suited for smaller elections but can scale as needed."
+      },
+      {
+        "question": "Do participants need a crypto wallet?",
+        "answer": "Yes, participants need to connect their crypto wallets for authentication and security."
+      }
+    ]
+  },
+  "about": {
+    "header": {
+      "title": "About EzyVote",
+      "description": "Revolutionizing small-scale voting with blockchain technology"
+    },
+    "mission": {
+      "title": "Our Mission",
+      "description": "At EzyVote, our mission is to empower communities with a secure, transparent, and efficient platform for conducting small-scale elections. We leverage the power of blockchain technology to ensure every vote counts and every voice is heard."
+    },
+    "values": {
+      "title": "Our Core Values",
+      "transparency": "Transparency: Ensuring every step of the process is visible and verifiable.",
+      "security": "Security: Protecting user data and election integrity with state-of-the-art blockchain technology.",
+      "inclusivity": "Inclusivity: Making the platform accessible and easy to use for everyone.",
+      "innovation": "Innovation: Constantly improving and adapting to meet the needs of our users."
+    },
+    "team": {
+      "title": "Meet the Team",
+      "members": [
+        {
+          "name": "Rakesh Mal",
+          "role": "Founder & Developer",
+          "image": "https://shorturl.at/9GNoP",
+          "social": {
+            "instagram": "https://instagram.com/_rakeshmal",
+            "linkedin": "https://linkedin.com/in/rakeshmal",
+            "twitter": "https://x.com/_rakeshmal"
+          }
+        },
+        {
+          "name": "Mayuresh Tardekar",
+          "role": "Co-founder & Developer",
+          "image": "https://shorturl.at/Geb6Z",
+          "social": {
+            "instagram": "https://www.instagram.com/mayu_tardekar/",
+            "linkedin": "https://www.linkedin.com/in/mayuresh-tardekar-a1736425a/",
+            "twitter": "https://x.com/MTardekar"
+          }
+        }
+      ]
+    }
+  },
+  "contact": {
+    "header": {
+      "title": "Contact Us",
+      "description": "Have questions? We'd love to hear from you. Send us a message and we'll respond as soon as possible."
+    },
+    "contactInfo": [
+      {
+        "icon": "Mail",
+        "title": "Email",
+        "content": "malrakesh172@gmail.com"
+      },
+      {
+        "icon": "Phone",
+        "title": "Phone",
+        "content": "+91 7738431349"
+      },
+      {
+        "icon": "MapPin",
+        "title": "Location",
+        "content": "Anand Nagar\nDahisar (East), Mumbai - 400068"
+      }
+    ],
+    "mapSection": {
+      "title": "Find Us Here"
+    },
+    "qrCodeSection": {
+      "title": "Scan to Save Contact",
+      "description": "Scan this QR code to save our contact details directly to your phone."
+    },
+    "formSection": {
+      "title": "Send Us a Message",
+      "labels": {
+        "name": "Name",
+        "email": "Email",
+        "message": "Message"
+      },
+      "button": "Send Message"
+    }
+  }
+}

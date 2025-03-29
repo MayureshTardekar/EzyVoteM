@@ -1,0 +1,26 @@
+Postman
+
+POST
+
+// login
+
+http://localhost:5000/api/login
+
+{
+  "email": "rakeshmal@gmail.com",
+  "password": "Rakesh@12345"
+}
+
+
+// register
+
+http://localhost:5000/api/register
+
+{
+  "firstName": "John",
+  "lastName": "Doe",
+  "email": "john.doe@example.com",
+  "phone": "1234567890",
+  "address": "123 Main St",
+  "password": "password123"
+}
