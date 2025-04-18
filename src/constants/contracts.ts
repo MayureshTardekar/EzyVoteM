@@ -1,0 +1,1 @@
+export const VOTING_CONTRACT_ADDRESS = "0xb54876bd974FA8c2822Ad1D13AF5089C67A604df"; // Your deployed contract address

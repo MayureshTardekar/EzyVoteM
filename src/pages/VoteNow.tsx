@@ -1,11 +1,11 @@
-import React, { useEffect, useState } from "react";
+import { ethers } from "ethers";
 import { Clock } from "lucide-react";
-import Card from "../components/Card";
-import Button from "../components/Button";
+import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
-import { ethers } from "ethers";
+import Button from "../components/Button";
+import Card from "../components/Card";
 import { useWallet } from "../components/WalletContext";
 
 const VoteNow = () => {
@@ -14,7 +14,9 @@ const VoteNow = () => {
   const [event, setEvent] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [voted, setVoted] = useState(false);
-  const [selectedCandidate, setSelectedCandidate] = useState<number | null>(null);
+  const [selectedCandidate, setSelectedCandidate] = useState<number | null>(
+    null
+  );
   const [timeRemaining, setTimeRemaining] = useState("");
   const { walletAddress, isWalletConnected, connectWallet } = useWallet();
 
@@ -22,7 +24,9 @@ const VoteNow = () => {
     const fetchEvent = async () => {
       try {
         // Fetch event data from the backend
-        const response = await fetch(`http://localhost:5000/api/events/${eventId}`);
+        const response = await fetch(
+          `http://localhost:5000/api/events/${eventId}`
+        );
         if (!response.ok) {
           throw new Error(`HTTP error! Status: ${response.status}`);
         }
@@ -30,7 +34,9 @@ const VoteNow = () => {
         setEvent(data);
       } catch (error) {
         console.error("Error fetching event:", error);
-        toast.error("Failed to fetch event. Please check your connection or try again later.");
+        toast.error(
+          "Failed to fetch event. Please check your connection or try again later."
+        );
       } finally {
         setLoading(false);
       }
@@ -51,14 +57,14 @@ const VoteNow = () => {
     }
 
     try {
-      const provider = new ethers.providers.Web3Provider(window.ethereum);
-      const signer = provider.getSigner();
+      const provider = new ethers.BrowserProvider(window.ethereum);
+      const signer = await provider.getSigner();
       const walletAddress = await signer.getAddress();
 
-      // Step 1: Request MetaMask transaction confirmation (send fees to the network)
+      // Step 1: Request MetaMask transaction confirmation
       const tx = await signer.sendTransaction({
-        to: ethers.constants.AddressZero, // Sending to the zero address (network fees only)
-        value: ethers.utils.parseEther("0.01"), // Optional: Add value if needed
+        to: ethers.ZeroAddress, // Updated for v6
+        value: ethers.parseEther("0.01"),
       });
       console.log("Transaction sent:", tx.hash);
 
@@ -72,13 +78,6 @@ const VoteNow = () => {
       console.log("Signature received:", signature);
 
       // Step 3: Send vote to the backend
-      console.log("Sending vote to backend:", {
-        eventId,
-        candidateIndex: selectedCandidate,
-        signature,
-        walletAddress,
-      });
-
       const voteResponse = await fetch(`http://localhost:5000/api/vote`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -92,23 +91,14 @@ const VoteNow = () => {
 
       if (!voteResponse.ok) {
         const errorResponse = await voteResponse.text();
-        console.error("Failed to record vote. Server response:", errorResponse);
         throw new Error(errorResponse || "Failed to record vote.");
       }
 
-      // Step 4: Log candidate vote counts to the console
-      if (event?.candidates) {
-        event.candidates.forEach((candidate: any, index: number) => {
-          console.log(`${candidate.name}: ${index === selectedCandidate ? 1 : 0}`);
-        });
-      }
-
-      // Step 5: Show success toast message
       toast.success("Vote recorded successfully!");
       setVoted(true);
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error voting:", error);
-      toast.error("Failed to record vote. Please try again.");
+      toast.error(error.message || "Failed to record vote. Please try again.");
     }
   };
 
@@ -144,13 +134,16 @@ const VoteNow = () => {
   }, [event]);
 
   if (loading) return <p className="text-center">Loading...</p>;
-  if (!event) return <p className="text-center text-gray-600">Event not found.</p>;
+  if (!event)
+    return <p className="text-center text-gray-600">Event not found.</p>;
 
   return (
     <div className="min-h-screen bg-gray-100 py-8">
       <header className="mb-8 text-center">
         <h1 className="text-3xl font-bold text-indigo-700">Vote Now</h1>
-        <p className="mt-2 text-gray-600">Participate in active elections and make your voice heard.</p>
+        <p className="mt-2 text-gray-600">
+          Participate in active elections and make your voice heard.
+        </p>
       </header>
 
       <Card className="mx-auto max-w-4xl p-6">
@@ -196,7 +189,11 @@ const VoteNow = () => {
           <Button
             onClick={handleVote}
             variant="primary"
-            disabled={voted || timeRemaining === "Voting Ended" || selectedCandidate === null}
+            disabled={
+              voted ||
+              timeRemaining === "Voting Ended" ||
+              selectedCandidate === null
+            }
           >
             {voted ? "Voted" : "Submit Vote"}
           </Button>

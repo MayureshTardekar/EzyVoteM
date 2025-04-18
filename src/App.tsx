@@ -1,38 +1,43 @@
-import React, { useEffect, useState } from "react";
-import { BrowserRouter as Router, Routes, Route, useNavigate, Navigate, Outlet } from "react-router-dom";
 import { Auth0Provider } from "@auth0/auth0-react";
-import { useTranslation } from "react-i18next";
+import { useEffect, useState } from "react";
 import { createRoot } from "react-dom/client"; // React 18 fix
+import { useTranslation } from "react-i18next";
+import {
+  Outlet,
+  Route,
+  BrowserRouter as Router,
+  Routes,
+  useNavigate,
+} from "react-router-dom";
 
 import Navbar from "./components/Navbar";
-import Home from "./pages/Home";
+import Sidebar from "./components/Sidebar";
 import About from "./pages/About";
-import Contact from "./pages/Contact";
-import Privacy from "./pages/Privacy";
-import Dashboard from "./pages/UserDashboard";
 import AdminDashboard from "./pages/AdminDashboard";
+import Contact from "./pages/Contact";
+import CreateEvent from "./pages/CreateEvent";
+import Home from "./pages/Home";
+import Notifications from "./pages/Notifications";
+import Privacy from "./pages/Privacy";
 import Reports from "./pages/Reports";
 import Tutorials from "./pages/Tutorials";
-import Notifications from "./pages/Notifications";
-import CreateEvent from "./pages/CreateEvent";
+import Dashboard from "./pages/UserDashboard";
 import VotingHistory from "./pages/VotingHistory";
-import Sidebar from "./components/Sidebar";
 
-import LanguageSelector from "./components/LanguageSelector";
-import { WalletProvider } from "./components/WalletContext"; // Import WalletProvider
 import { GoogleOAuthProvider } from "@react-oauth/google";
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
-import "./i18n";
-import SystemLogs from "./pages/SystemLogs";
-import LiveResults from "./pages/LiveResults";
 import DashboardAnalytics from "./components/DashboardAnalytics";
-import VoteNow from "./pages/VoteNow";
 import UpcomingElections from "./components/UpcomingElections";
-import DownloadReports from "./pages/DownloadReports";
-import ViewPastElections from "./pages/ViewPastElections";
-import SecurelyVoting from "./pages/SecurelyVoting";
+import { WalletProvider } from "./components/WalletContext"; // Import WalletProvider
+import "./i18n";
 import CreateSecureEvent from "./pages/CreateSecurePage";
+import DownloadReports from "./pages/DownloadReports";
+import LiveResults from "./pages/LiveResults";
+import SecurelyVoting from "./pages/SecurelyVoting";
+import SystemLogs from "./pages/SystemLogs";
+import ViewPastElections from "./pages/ViewPastElections";
+import VoteNow from "./pages/VoteNow";
 
 const clientId =
   "618985753544-ru0sgmr1ad4fcmpgpaj8p1v2iopbhbnm.apps.googleusercontent.com";
@@ -101,9 +106,15 @@ function App() {
           <Route
             element={
               <div className="min-h-screen bg-gray-50 flex">
-                <Sidebar isOpen={isSidebarOpen} toggleSidebar={toggleSidebar} isMobile={false} />
+                <Sidebar
+                  isOpen={isSidebarOpen}
+                  toggleSidebar={toggleSidebar}
+                  isMobile={false}
+                />
                 <div
-                  className={`flex-1 transition-all duration-300 ${isSidebarOpen ? "ml-48" : "ml-20"} p-6`}
+                  className={`flex-1 transition-all duration-300 ${
+                    isSidebarOpen ? "ml-48" : "ml-20"
+                  } p-6`}
                 >
                   <Outlet />
                 </div>
@@ -111,19 +122,28 @@ function App() {
             }
           >
             {/* Correct Dashboard Redirect */}
-            <Route path="/user-dashboard" element={<Dashboard isSidebarOpen={isSidebarOpen} />} />
+            <Route
+              path="/user-dashboard"
+              element={<Dashboard isSidebarOpen={isSidebarOpen} />}
+            />
             <Route path="/admin-dashboard" element={<AdminDashboard />} />
             <Route path="/reports" element={<Reports />} />
             <Route path="/tutorials" element={<Tutorials />} />
             <Route path="/notifications" element={<Notifications />} />
             <Route path="/create-event" element={<CreateEvent />} />
-            <Route path="/create-secure-event" element={<CreateSecureEvent />} />
+            <Route
+              path="/create-secure-event"
+              element={<CreateSecureEvent />}
+            />
             <Route path="/voting-history" element={<VotingHistory />} />
             <Route path="/past-elections" element={<ViewPastElections />} />
             <Route path="/download-reports" element={<DownloadReports />} />
             <Route path="/system-logs" element={<SystemLogs />} />
             <Route path="/upcoming-elections" element={<UpcomingElections />} />
-            <Route path="/dashboard-analytics" element={<DashboardAnalytics />} />
+            <Route
+              path="/dashboard-analytics"
+              element={<DashboardAnalytics />}
+            />
             <Route path="/vote-now/:eventId" element={<VoteNow />} />
             <Route path="/live-results" element={<LiveResults />} />
             <Route path="/securely-voting" element={<SecurelyVoting />} />

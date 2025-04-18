@@ -1,0 +1,16 @@
+{
+  "welcome": "સ્વાગત છે",
+  "home": "હોમ",
+  "about": "વિશે",
+  "contact": "સંપર્ક",
+  "login": "લૉગિન",
+  "register": "નોંધણી",
+  "vote": "મત આપો",
+  "results": "પરિણામો",
+  "profile": "પ્રોફાઇલ",
+  "logout": "લૉગઆઉટ",
+  "language": "ભાષા",
+  "settings": "સેટિંગ્સ",
+  "darkMode": "ડાર્ક મોડ",
+  "lightMode": "લાઇટ મોડ"
+}
