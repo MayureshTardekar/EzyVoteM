@@ -1,6 +1,6 @@
 import { ethers } from "ethers";
 import { Clock } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
@@ -19,6 +19,8 @@ const VoteNow = () => {
   );
   const [timeRemaining, setTimeRemaining] = useState("");
   const { walletAddress, isWalletConnected, connectWallet } = useWallet();
+  const wsRef = useRef<WebSocket | null>(null);
+  const reconnectTimeoutRef = useRef(null);
 
   useEffect(() => {
     const fetchEvent = async () => {
@@ -43,6 +45,41 @@ const VoteNow = () => {
     };
 
     fetchEvent();
+
+    const connectWebSocket = () => {
+      if (wsRef.current?.readyState === WebSocket.OPEN) return;
+
+      wsRef.current = new WebSocket("ws://localhost:5000");
+
+      wsRef.current.onmessage = (event) => {
+        try {
+          const data = JSON.parse(event.data);
+          if (data.type === "voteUpdate") {
+            setEvent((prevEvent) => {
+              if (!prevEvent) return prevEvent;
+              const updatedCandidates = [...prevEvent.candidates];
+              updatedCandidates[data.data.candidateIndex].votes =
+                data.data.updatedVoteCount;
+              return { ...prevEvent, candidates: updatedCandidates };
+            });
+          }
+        } catch (error) {
+          console.error("WebSocket message error:", error);
+        }
+      };
+
+      wsRef.current.onclose = () => {
+        // Silent reconnect without notifying user
+        reconnectTimeoutRef.current = setTimeout(connectWebSocket, 2000);
+      };
+    };
+
+    connectWebSocket();
+
+    return () => {
+      clearTimeout(reconnectTimeoutRef.current);
+      wsRef.current?.close();
+    };
   }, [eventId]);
 
   const handleVote = async () => {
@@ -124,6 +161,29 @@ const VoteNow = () => {
     return `${hours}h ${minutes}m ${seconds}s`;
   };
 
+  // Calculate the leading candidate index
+  const getLeadingCandidateIndex = () => {
+    if (!event || !event.candidates || event.candidates.length === 0) return -1;
+
+    let maxVotes = -1;
+    let leadingIndex = -1;
+    let isTie = false;
+
+    event.candidates.forEach((candidate, index) => {
+      const votes = candidate.votes || 0;
+      if (votes > maxVotes) {
+        maxVotes = votes;
+        leadingIndex = index;
+        isTie = false;
+      } else if (votes === maxVotes && votes > 0) {
+        isTie = true;
+      }
+    });
+
+    // Return -1 if there's a tie or no votes
+    return isTie || maxVotes === 0 ? -1 : leadingIndex;
+  };
+
   useEffect(() => {
     if (event) {
       const interval = setInterval(() => {
@@ -154,7 +214,18 @@ const VoteNow = () => {
         </div>
 
         <div className="flex items-center justify-between mb-4">
-          <h2 className="text-xl font-semibold text-gray-800">{event.title}</h2>
+          <div>
+            <h2 className="text-xl font-semibold text-gray-800">
+              {event.title}
+            </h2>
+            <p className="text-sm text-gray-600 mt-1">
+              Total Votes:{" "}
+              {event.candidates.reduce(
+                (sum, candidate) => sum + (candidate.votes || 0),
+                0
+              )}
+            </p>
+          </div>
           <div className="flex items-center gap-2 text-gray-500">
             <span>{formatDate(event.endDate)}</span>
           </div>
@@ -171,6 +242,23 @@ const VoteNow = () => {
               <div>
                 <h3 className="font-semibold">{candidate.name}</h3>
                 <p className="text-sm text-gray-600">{candidate.bio}</p>
+                <div className="flex items-center mt-2">
+                  <div
+                    className={`${
+                      getLeadingCandidateIndex() === index
+                        ? "bg-green-100 text-green-800"
+                        : "bg-indigo-100 text-indigo-800"
+                    } px-2 py-1 rounded-md text-sm font-medium flex items-center`}
+                  >
+                    <span className="mr-1">Votes:</span>
+                    <span className="font-bold">{candidate.votes || 0}</span>
+                    {getLeadingCandidateIndex() === index && (
+                      <span className="ml-2 text-xs bg-green-200 px-1 py-0.5 rounded">
+                        LEADING
+                      </span>
+                    )}
+                  </div>
+                </div>
               </div>
               <input
                 type="radio"

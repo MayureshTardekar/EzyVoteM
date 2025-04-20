@@ -1,5 +1,5 @@
 Directory structure:
-└── malrakesh-ezyvote/
+└── EzyVoteM/
     ├── Volta.txt
     ├── codes.txt
     ├── eslint.config.js
@@ -153,7 +153,7 @@ export default tseslint.config(
 File: files_structure.txt
 ================================================
 Directory structure:
-└── malrakesh-ezyvote/
+└── EzyVoteM/
     ├── Volta.txt
     ├── codes.txt
     ├── eslint.config.js

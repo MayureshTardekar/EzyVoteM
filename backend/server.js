@@ -73,14 +73,15 @@ wss.on("error", (error) => {
   console.error("🚨 WebSocket server error:", error.message);
 });
 
+// Simplified broadcast function
 function broadcast(data) {
   activeConnections.forEach((client) => {
-    try {
-      if (client.readyState === WebSocket.OPEN) {
+    if (client.readyState === WebSocket.OPEN) {
+      try {
         client.send(JSON.stringify(data));
+      } catch (error) {
+        console.error("Broadcast error:", error);
       }
-    } catch (error) {
-      console.error("🚨 Error broadcasting message to client:", error.message);
     }
   });
 }

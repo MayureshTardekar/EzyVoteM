@@ -1,0 +1,260 @@
+EZYVOTEM/
+├── .vscode/
+│   └── settings.json
+├── artifacts/
+│   ├── build-info/
+│   └── contracts/
+├── backend/
+│   ├── config/
+│   │   └── adminWallets.json
+│   ├── controllers/
+│   │   ├── adminController.js
+│   │   └── authController.js
+│   ├── middleware/
+│   │   └── verifyAdmin.js
+│   ├── node_modules/
+│   ├── routes/
+│   │   ├── adminRoutes.js
+│   │   └── authRoutes.js
+│   ├── package-lock.json
+│   ├── package.json
+│   └── server.js
+├── cache/
+│   └── solidity-files-cache.json
+├── contracts/
+│   ├── Lock.sol
+│   └── Voting.sol
+├── coverage/
+│   ├── contracts/
+│   │   ├── index.html
+│   │   ├── Lock.sol.html
+│   │   └── Voting.sol.html
+│   ├── lcov-report/
+│   │   ├── contracts/
+│   │   │   ├── index.html
+│   │   │   ├── Lock.sol.html
+│   │   │   └── Voting.sol.html
+│   ├── base.css
+│   ├── index.html
+│   ├── prettify.css
+│   ├── prettify.js
+│   ├── sort-arrow-sprite.png
+│   └── sorter.js
+├── dist/
+│   ├── JS_hardhat.config.dev.js
+│   ├── JS_postcss.config.dev.js
+│   ├── JS_tailwind.config.dev.js
+│   └── vite.config.js
+├── favicon/
+│   ├── android-chrome-192x192.png
+│   ├── android-chrome-512x512.png
+│   ├── apple-touch-icon.png
+│   ├── favicon-16x16.png
+│   ├── favicon-32x32.png
+│   ├── favicon.ico
+│   └── site.webmanifest
+├── ignition/
+│   └── modules/
+│       └── JS_Lock.js
+├── node_modules/
+├── scripts/
+│   ├── cast-vote.cjs
+│   ├── create-test-event.cjs
+│   ├── create-test-event.js
+│   ├── deploy.cjs
+│   ├── deploy.js
+│   ├── test-voting-flow.cjs
+│   └── test-voting-flow.js
+├── src/
+│   ├── __tests__/
+│   │   ├── abi/
+│   │   ├── components/
+│   │   ├── constants/
+│   │   ├── contracts/
+│   │   ├── dist/
+│   │   ├── locales/
+│   │   ├── pages/
+│   │   ├── sounds/
+│   │   ├── types/
+│   │   ├── App.tex
+│   │   ├── constants.ts
+│   │   ├── i18n.js
+│   │   ├── index.css
+│   │   ├── main.tex
+│   │   ├── setupTests.ts
+│   │   ├── test-utils.ts
+│   │   └── vite-env.d.ts
+│   └── test/
+├── test/
+│   ├── Lock.js
+│   ├── Voting.cjs
+│   └── Voting.js
+├── .env
+├── .gitignore
+├── bool
+├── cls
+├── codes.txt
+├── coverage.json
+├── eslint.config.js
+├── files_structure.txt
+├── hardhat.config.cjs
+├── hardhat.config.js
+├── hello.txt
+├── index.html
+├── jest.config.cjs
+├── npm
+├── npx
+├── package-lock.json
+├── package.json
+├── postcss.config.js
+├── postman.txt
+├── README.md
+├── steps.txt
+├── Structure.txt
+├── tailwind.config.js
+├── tsconfig.app.json
+├── tsconfig.json
+├── tsconfig.node.json
+├── vite.config.ts
+└── Volta.txt
+----------------------------------------------------------------------------------------------------------------------
+src folder
+C:.
+|   App.tsx
+|   constants.ts
+|   i18n.js
+|   index.css
+|   main.tsx
+|   setupTests.ts
+|   test-utils.ts
+|   vite-env.d.ts
+|
++---abi
+|       Voting.json
+|       VotingABI.json
+|
++---components
+|   |   BackToTopButton.tsx
+|   |   Button.tsx
+|   |   CandidateList.tsx
+|   |   Card.tsx
+|   |   DashboardAnalytics.tsx
+|   |   Footer.tsx
+|   |   FooterAbout.tsx
+|   |   FooterContact.tsx
+|   |   FooterPrivacyPolicy.tsx
+|   |   LanguageSelector.tsx
+|   |   LoadingSpinner.tsx
+|   |   Navbar.tsx
+|   |   NavUnderline.tsx
+|   |   Sidebar.tsx
+|   |   TermsAndConditionsPopup.tsx
+|   |   UpcomingElections.tsx
+|   |   VoteComponent.tsx
+|   |   WalletContext.tsx
+|   |
+|   \---dist
+|           Navbar.js
+|           VoteComponent.js
+|           WalletContext.js
+|
++---constants
+|   |   abi.ts
+|   |   contracts.ts
+|   |   index.ts
+|   |
+|   \---dist
+|           contracts.js
+|           index.js
+|
++---contracts
+|   |   config.ts
+|   |   VotingContract.ts
+|   |
+|   \---dist
+|           config.js
+|           VotingContract.js
+|
++---dist
+|       App.js
+|       i18n.dev.js
+|       main.js
+|
++---locales
+|   +---bn
+|   |       translation.json
+|   |
+|   +---en
+|   |       translation.json
+|   |
+|   +---gu
+|   |       translation.json
+|   |       translation.txt
+|   |
+|   +---hi
+|   |       translation.json
+|   |
+|   +---mr
+|   |       translation.json
+|   |
+|   \---ta
+|           translation.json
+|
++---pages
+|   |   About.tsx
+|   |   AdminDashboard.tsx
+|   |   Contact.tsx
+|   |   CreateEvent.tsx
+|   |   CreateSecurePage.tsx
+|   |   Dashboard.tsx
+|   |   DownloadReports.tsx
+|   |   Home.tsx
+|   |   index.ts
+|   |   LiveResults.tsx
+|   |   Notifications.tsx
+|   |   Privacy.tsx
+|   |   Reports.tsx
+|   |   SecurelyVoting.tsx
+|   |   SystemLogs.tsx
+|   |   TestVoting.tsx
+|   |   Tutorials.tsx
+|   |   UpcomingElections.tsx
+|   |   UserDashboard.tsx
+|   |   ViewPastElections.tsx
+|   |   VoteNow.tsx
+|   |   VotingHistory.tsx
+|   |
+|   \---dist
+|           Home.js
+|           SecurelyVoting.js
+|           UpcomingElections.js
+|           VoteNow.js
+|
++---sounds
+|       toast-error.wav
+|       toast-success.wav
+|       vote-success.wav
+|
++---types
+|       index.ts
+|       window.d.ts
+|
+\---__tests__
+        VoteNow.test.tsx
+
+
+C:\Users\MAYURESH\Desktop\EzyVoteM\src>
+C:.
+|   cast-vote.cjs
+|   create-test-event.cjs
+|   create-test-event.js
+|   deploy.cjs
+|   deploy.js
+|   test-voting-flow.cjs
+|   test-voting-flow.js
+|
+\---dist
+        deploy.dev.js
+
+
+C:\Users\MAYURESH\Desktop\EzyVoteM\scripts>
