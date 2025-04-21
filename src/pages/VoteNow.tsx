@@ -1,5 +1,5 @@
 import { ethers } from "ethers";
-import { Clock } from "lucide-react";
+import { Clock, RefreshCw } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { toast } from "react-toastify";
@@ -8,37 +8,121 @@ import Button from "../components/Button";
 import Card from "../components/Card";
 import { useWallet } from "../components/WalletContext";
 
+interface EventType {
+  startDate: string;
+  startTime: string;
+  endDate: string;
+  endTime: string;
+  // ... other event properties
+}
+
+const toLocalDateTime = (dateStr: string, timeStr: string): Date => {
+  const [year, month, day] = dateStr.split("-").map(Number);
+  const [hour, minute] = timeStr.split(":").map(Number);
+  return new Date(year, month - 1, day, hour, minute);
+};
+
 const VoteNow = () => {
   const { eventId } = useParams(); // Get the eventId from the URL
   const navigate = useNavigate();
-  const [event, setEvent] = useState<any>(null);
+  const [event, setEvent] = useState<EventType | null>(null);
   const [loading, setLoading] = useState(true);
   const [voted, setVoted] = useState(false);
   const [selectedCandidate, setSelectedCandidate] = useState<number | null>(
     null
   );
   const [timeRemaining, setTimeRemaining] = useState("");
+  const [votingStatus, setVotingStatus] = useState<
+    "upcoming" | "active" | "ended"
+  >("upcoming");
   const { walletAddress, isWalletConnected, connectWallet } = useWallet();
   const wsRef = useRef<WebSocket | null>(null);
   const reconnectTimeoutRef = useRef(null);
+  const statusIntervalRef = useRef<NodeJS.Timeout | null>(null);
+
+  // Use ref to always access latest event data
+  const eventRef = useRef<EventType | null>(null);
+
+  // Update ref whenever event changes
+  useEffect(() => {
+    eventRef.current = event;
+  }, [event]);
+
+  const updateVotingStatus = () => {
+    const e = eventRef.current;
+    if (!e) return;
+
+    try {
+      const start = toLocalDateTime(e.startDate, e.startTime);
+      const end = toLocalDateTime(e.endDate, e.endTime);
+      const nowMs = new Date().getTime();
+      const startMs = start.getTime();
+      const endMs = end.getTime();
+
+      // Debug logging
+      console.log("Status Check:", {
+        now: new Date().toISOString(),
+        start: start.toISOString(),
+        end: end.toISOString(),
+        diffToStart: (startMs - nowMs) / 1000,
+        diffToEnd: (endMs - nowMs) / 1000,
+      });
+
+      if (nowMs < startMs) {
+        setVotingStatus("upcoming");
+        setTimeRemaining(calculateTimeUntilStart(start));
+      } else if (nowMs <= endMs) {
+        setVotingStatus("active");
+        setTimeRemaining(calculateTimeRemaining(end));
+      } else {
+        setVotingStatus("ended");
+        setTimeRemaining("Voting Ended");
+      }
+    } catch (error) {
+      console.error("Error in updateVotingStatus:", error);
+      setVotingStatus("ended");
+      setTimeRemaining("Error: Invalid date/time");
+    }
+  };
+
+  const calculateTimeUntilStart = (startDate: Date): string => {
+    const now = new Date();
+    const diff = startDate.getTime() - now.getTime();
+
+    if (diff <= 0) return "Starting soon";
+    return formatTimeRemaining(diff);
+  };
+
+  const calculateTimeRemaining = (endDate: Date): string => {
+    const now = new Date();
+    const diff = endDate.getTime() - now.getTime();
+
+    if (diff <= 0) return "Voting Ended";
+    return formatTimeRemaining(diff);
+  };
+
+  const formatTimeRemaining = (diff: number): string => {
+    const hours = Math.floor(diff / (1000 * 60 * 60));
+    const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+    const seconds = Math.floor((diff % (1000 * 60)) / 1000);
+    return `${hours}h ${minutes}m ${seconds}s`;
+  };
 
   useEffect(() => {
     const fetchEvent = async () => {
       try {
-        // Fetch event data from the backend
         const response = await fetch(
           `http://localhost:5000/api/events/${eventId}`
         );
-        if (!response.ok) {
+        if (!response.ok)
           throw new Error(`HTTP error! Status: ${response.status}`);
-        }
+
         const data = await response.json();
+        validateEventData(data);
         setEvent(data);
       } catch (error) {
         console.error("Error fetching event:", error);
-        toast.error(
-          "Failed to fetch event. Please check your connection or try again later."
-        );
+        toast.error("Failed to fetch event details");
       } finally {
         setLoading(false);
       }
@@ -46,41 +130,26 @@ const VoteNow = () => {
 
     fetchEvent();
 
-    const connectWebSocket = () => {
-      if (wsRef.current?.readyState === WebSocket.OPEN) return;
-
-      wsRef.current = new WebSocket("ws://localhost:5000");
-
-      wsRef.current.onmessage = (event) => {
-        try {
-          const data = JSON.parse(event.data);
-          if (data.type === "voteUpdate") {
-            setEvent((prevEvent) => {
-              if (!prevEvent) return prevEvent;
-              const updatedCandidates = [...prevEvent.candidates];
-              updatedCandidates[data.data.candidateIndex].votes =
-                data.data.updatedVoteCount;
-              return { ...prevEvent, candidates: updatedCandidates };
-            });
-          }
-        } catch (error) {
-          console.error("WebSocket message error:", error);
-        }
-      };
-
-      wsRef.current.onclose = () => {
-        // Silent reconnect without notifying user
-        reconnectTimeoutRef.current = setTimeout(connectWebSocket, 2000);
-      };
-    };
-
-    connectWebSocket();
+    // Set up status update interval
+    const intervalId = setInterval(updateVotingStatus, 1000);
+    statusIntervalRef.current = intervalId;
 
     return () => {
-      clearTimeout(reconnectTimeoutRef.current);
-      wsRef.current?.close();
+      if (statusIntervalRef.current) {
+        clearInterval(statusIntervalRef.current);
+      }
     };
   }, [eventId]);
+
+  // Validate event data
+  const validateEventData = (data: any) => {
+    const requiredFields = ["startDate", "startTime", "endDate", "endTime"];
+    for (const field of requiredFields) {
+      if (!data[field]) {
+        throw new Error(`Invalid event data: missing ${field}`);
+      }
+    }
+  };
 
   const handleVote = async () => {
     if (!isWalletConnected) {
@@ -147,20 +216,6 @@ const VoteNow = () => {
     return `${day}/${month}/${year}`;
   };
 
-  const calculateTimeRemaining = (endDate: string): string => {
-    const now = new Date();
-    const end = new Date(endDate);
-    const diff = end.getTime() - now.getTime();
-
-    if (diff <= 0) return "Voting Ended";
-
-    const hours = Math.floor(diff / (1000 * 60 * 60));
-    const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
-    const seconds = Math.floor((diff % (1000 * 60)) / 1000);
-
-    return `${hours}h ${minutes}m ${seconds}s`;
-  };
-
   // Calculate the leading candidate index
   const getLeadingCandidateIndex = () => {
     if (!event || !event.candidates || event.candidates.length === 0) return -1;
@@ -184,14 +239,27 @@ const VoteNow = () => {
     return isTie || maxVotes === 0 ? -1 : leadingIndex;
   };
 
-  useEffect(() => {
-    if (event) {
-      const interval = setInterval(() => {
-        setTimeRemaining(calculateTimeRemaining(event.endDate));
-      }, 1000);
-      return () => clearInterval(interval);
+  const handleRefresh = async () => {
+    setLoading(true);
+    try {
+      const response = await fetch(
+        `http://localhost:5000/api/events/${eventId}`
+      );
+      if (!response.ok)
+        throw new Error(`HTTP error! Status: ${response.status}`);
+
+      const data = await response.json();
+      validateEventData(data);
+
+      setEvent(data);
+      // Status will update automatically via useEffect
+    } catch (error) {
+      console.error("Error refreshing event:", error);
+      toast.error("Failed to refresh event details");
+    } finally {
+      setLoading(false);
     }
-  }, [event]);
+  };
 
   if (loading) return <p className="text-center">Loading...</p>;
   if (!event)
@@ -207,10 +275,34 @@ const VoteNow = () => {
       </header>
 
       <Card className="mx-auto max-w-4xl p-6">
-        {/* Countdown Timer */}
-        <div className="flex items-center justify-center mb-6 text-lg font-semibold text-gray-700">
-          <Clock className="w-6 h-6 mr-2" />
-          <span>{timeRemaining}</span>
+        {/* Refresh button */}
+        <div className="flex justify-between items-center mb-4">
+          <h1 className="text-2xl font-bold">{event?.title}</h1>
+          <Button
+            onClick={handleRefresh}
+            disabled={loading}
+            className="flex items-center gap-2"
+          >
+            <RefreshCw className="w-4 h-4" />
+            Refresh
+          </Button>
+        </div>
+
+        {/* Status display */}
+        <div className="mb-4 flex items-center gap-2">
+          <Clock className="w-4 h-4" />
+          <span
+            className={`
+            ${votingStatus === "upcoming" ? "text-blue-500" : ""}
+            ${votingStatus === "active" ? "text-green-500" : ""}
+            ${votingStatus === "ended" ? "text-red-500" : ""}
+          `}
+          >
+            {votingStatus === "upcoming" && "Upcoming: "}
+            {votingStatus === "active" && "Active: "}
+            {votingStatus === "ended" && "Ended"}
+            {timeRemaining && votingStatus !== "ended" && timeRemaining}
+          </span>
         </div>
 
         <div className="flex items-center justify-between mb-4">

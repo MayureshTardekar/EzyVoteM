@@ -1,8 +1,8 @@
-import React, { useEffect, useState } from "react";
-import { Calendar, Clock, Vote, Trash2, X } from "lucide-react"; // Added X icon for delete
-import Card from "../components/Card";
-import Button from "../components/Button";
+import { Calendar, Clock, Trash2, X } from "lucide-react"; // Added X icon for delete
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import Button from "../components/Button";
+import Card from "../components/Card";
 import BackToTopButton from "./BackToTopButton";
 
 const UpcomingElections = () => {
@@ -33,12 +33,19 @@ const UpcomingElections = () => {
             const updatedElections = [...prevElections, message.data];
             // Sort events by start date and time
             const sortedElections = updatedElections.sort((a, b) => {
-              const aDateTime = new Date(`${a.startDate || ""}T${a.startTime || ""}`);
-              const bDateTime = new Date(`${b.startDate || ""}T${b.startTime || ""}`);
+              const aDateTime = new Date(
+                `${a.startDate || ""}T${a.startTime || ""}`
+              );
+              const bDateTime = new Date(
+                `${b.startDate || ""}T${b.startTime || ""}`
+              );
               return aDateTime.getTime() - bDateTime.getTime();
             });
             // Save updated elections to localStorage
-            localStorage.setItem("upcomingElections", JSON.stringify(sortedElections));
+            localStorage.setItem(
+              "upcomingElections",
+              JSON.stringify(sortedElections)
+            );
             return sortedElections;
           });
         }
@@ -61,7 +68,31 @@ const UpcomingElections = () => {
     };
   }, []);
 
-  // Function to determine the status of an event
+  // Add these helper functions at the top of your component
+  const toLocalDateTime = (dateStr: string, timeStr: string): Date => {
+    const [year, month, day] = dateStr.split("-").map(Number);
+    const [hour, minute] = timeStr.split(":").map(Number);
+    return new Date(year, month - 1, day, hour, minute);
+  };
+
+  const calculateTimeRemaining = (endDate: string, endTime: string): string => {
+    try {
+      const now = new Date();
+      const end = toLocalDateTime(endDate, endTime);
+      const diff = end.getTime() - now.getTime();
+
+      if (diff <= 0) return "Expired";
+
+      const hours = Math.floor(diff / (1000 * 60 * 60));
+      const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+      const seconds = Math.floor((diff % (1000 * 60)) / 1000);
+
+      return `${hours}h ${minutes}m ${seconds}s`;
+    } catch (err) {
+      return "Invalid";
+    }
+  };
+
   const getEventStatus = (
     startDate: string,
     startTime: string,
@@ -69,44 +100,65 @@ const UpcomingElections = () => {
     endTime: string
   ): string => {
     const now = new Date();
-    const startDateTime = new Date(`${startDate}T${startTime}`);
-    const endDateTime = new Date(`${endDate}T${endTime}`);
 
-    if (now >= startDateTime && now <= endDateTime) {
-      return "Active"; // Event is currently active
-    } else if (now < startDateTime) {
-      return "Upcoming"; // Event is yet to start
-    } else {
-      return "Ended"; // Event has ended
+    if (!startDate || !startTime || !endDate || !endTime) return "Invalid";
+
+    try {
+      const start = toLocalDateTime(startDate, startTime);
+      const end = toLocalDateTime(endDate, endTime);
+
+      // Debug logs
+      console.log("Status check:", {
+        now: now.toLocaleString(),
+        start: start.toLocaleString(),
+        end: end.toLocaleString(),
+      });
+
+      if (now < start) return "Upcoming";
+      if (now >= start && now <= end) return "Active";
+      return "Ended";
+    } catch (err) {
+      console.error("Date parsing error:", err);
+      return "Invalid";
     }
   };
 
   // Periodically update the status of events
   useEffect(() => {
-    const interval = setInterval(() => {
+    const statusInterval = setInterval(() => {
       setElections((prevElections) => {
-        // Check if any event's status has changed
         const updatedElections = prevElections.map((election) => {
-          const status = getEventStatus(
+          const currentStatus = getEventStatus(
             election.startDate,
             election.startTime,
             election.endDate,
             election.endTime
           );
-          return { ...election, status }; // Add the status to each election object
+
+          // Only update if status has changed
+          if (election.status !== currentStatus) {
+            return { ...election, status: currentStatus };
+          }
+          return election;
         });
 
-        // Only update state if there's a change in status
-        if (
-          JSON.stringify(updatedElections) !== JSON.stringify(prevElections)
-        ) {
+        // Only trigger re-render if there are actual changes
+        const hasStatusChanges = updatedElections.some(
+          (updated, index) => updated.status !== prevElections[index].status
+        );
+
+        if (hasStatusChanges) {
+          localStorage.setItem(
+            "upcomingElections",
+            JSON.stringify(updatedElections)
+          );
           return updatedElections;
         }
         return prevElections;
       });
-    }, 1000); // Check every second
+    }, 1000);
 
-    return () => clearInterval(interval); // Cleanup interval on unmount
+    return () => clearInterval(statusInterval);
   }, []);
 
   // Helper function to format date as dd/mm/yyyy
@@ -129,9 +181,14 @@ const UpcomingElections = () => {
   // Function to delete a specific election
   const handleDeleteElection = () => {
     if (deleteElectionId) {
-      const updatedElections = elections.filter((election) => election.id !== deleteElectionId);
+      const updatedElections = elections.filter(
+        (election) => election.id !== deleteElectionId
+      );
       setElections(updatedElections); // Update state
-      localStorage.setItem("upcomingElections", JSON.stringify(updatedElections)); // Update localStorage
+      localStorage.setItem(
+        "upcomingElections",
+        JSON.stringify(updatedElections)
+      ); // Update localStorage
       setDeleteElectionId(null); // Close the popup
     }
   };
@@ -141,13 +198,17 @@ const UpcomingElections = () => {
       {/* Header */}
       <div className="bg-gradient-to-r from-indigo-600 to-purple-600 text-white py-12 text-center mb-8">
         <h1 className="text-4xl font-bold">Upcoming Elections</h1>
-        <p className="mt-2 text-lg">Stay informed about upcoming voting events.</p>
+        <p className="mt-2 text-lg">
+          Stay informed about upcoming voting events.
+        </p>
       </div>
 
       {/* Elections List */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
         {isLoading ? (
-          <p className="text-gray-600 text-center col-span-full">Loading elections...</p>
+          <p className="text-gray-600 text-center col-span-full">
+            Loading elections...
+          </p>
         ) : elections.length > 0 ? (
           elections.map((election) => {
             const status = getEventStatus(
@@ -159,7 +220,7 @@ const UpcomingElections = () => {
             return (
               <Card
                 key={election.id}
-                className="p-6 text-center hover:shadow-lg transition-shadow relative" // Added 'relative' for positioning
+                className="p-6 text-center hover:shadow-lg transition-shadow relative"
               >
                 {/* Status Badge */}
                 <div
@@ -182,8 +243,14 @@ const UpcomingElections = () => {
                     <X className="w-4 h-4" />
                   </button>
                 )}
-                <h3 className="text-xl font-semibold text-gray-900 mb-2">{election.title}</h3>
+                <h3 className="text-xl font-semibold text-gray-900 mb-2">
+                  {election.title}
+                </h3>
                 <p className="text-gray-600 mb-4">{election.candidateBio}</p>
+                <div className="text-sm text-gray-500 mb-2">
+                  Time remaining:{" "}
+                  {calculateTimeRemaining(election.endDate, election.endTime)}
+                </div>
                 <div className="flex justify-center items-center gap-2 text-gray-500 mb-2">
                   <Calendar className="w-4 h-4" />
                   <span>
@@ -236,7 +303,9 @@ const UpcomingElections = () => {
             );
           })
         ) : (
-          <p className="text-gray-600 text-center col-span-full">No upcoming elections at the moment.</p>
+          <p className="text-gray-600 text-center col-span-full">
+            No upcoming elections at the moment.
+          </p>
         )}
       </div>
 
@@ -258,7 +327,10 @@ const UpcomingElections = () => {
             <h2 className="text-xl font-bold mb-4">Clear All Elections</h2>
             <p>Are you sure you want to clear all elections?</p>
             <div className="flex justify-center gap-4 mt-4">
-              <Button onClick={() => setIsClearPopupOpen(false)} variant="secondary">
+              <Button
+                onClick={() => setIsClearPopupOpen(false)}
+                variant="secondary"
+              >
                 No
               </Button>
               <Button onClick={handleClearElections} variant="danger">
@@ -276,7 +348,10 @@ const UpcomingElections = () => {
             <h2 className="text-xl font-bold mb-4">Delete Election</h2>
             <p>Are you sure you want to delete this election?</p>
             <div className="flex justify-center gap-4 mt-4">
-              <Button onClick={() => setDeleteElectionId(null)} variant="secondary">
+              <Button
+                onClick={() => setDeleteElectionId(null)}
+                variant="secondary"
+              >
                 No
               </Button>
               <Button onClick={handleDeleteElection} variant="danger">
@@ -286,7 +361,7 @@ const UpcomingElections = () => {
           </div>
         </div>
       )}
-    <BackToTopButton />
+      <BackToTopButton />
     </div>
   );
 };
