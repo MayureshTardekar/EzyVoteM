@@ -1,6 +1,7 @@
 import { Calendar, Clock, Trash2, X } from "lucide-react"; // Added X icon for delete
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { toast } from "react-toastify";
 import Button from "../components/Button";
 import Card from "../components/Card";
 import BackToTopButton from "./BackToTopButton";
@@ -11,37 +12,39 @@ const UpcomingElections = () => {
   const [isLoading, setIsLoading] = useState(true); // Loading state
   const [isClearPopupOpen, setIsClearPopupOpen] = useState(false); // Clear all popup state
   const [deleteElectionId, setDeleteElectionId] = useState(null); // Delete specific election popup state
+  const wsRef = useRef<WebSocket | null>(null);
+  const reconnectTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
-  useEffect(() => {
-    // Load elections from localStorage on component mount
-    const savedElections = localStorage.getItem("upcomingElections");
-    if (savedElections) {
-      setElections(JSON.parse(savedElections));
-    }
+  const connectWebSocket = () => {
+    if (wsRef.current?.readyState === WebSocket.OPEN) return;
 
-    // Establish WebSocket connection
-    const socket = new WebSocket("ws://localhost:5000");
+    const ws = new WebSocket("ws://localhost:5000");
+    wsRef.current = ws;
 
-    // Listen for messages from the server
-    socket.onmessage = (event) => {
+    ws.onopen = () => {
+      console.log("WebSocket connected");
+      if (reconnectTimeoutRef.current) {
+        clearTimeout(reconnectTimeoutRef.current);
+      }
+    };
+
+    ws.onclose = () => {
+      console.log("WebSocket disconnected - attempting reconnect...");
+      reconnectTimeoutRef.current = setTimeout(connectWebSocket, 2000);
+    };
+
+    ws.onerror = (error) => {
+      console.error("WebSocket error:", error);
+    };
+
+    ws.onmessage = (event) => {
       try {
         const message = JSON.parse(event.data);
         if (message.type === "newEvent") {
           console.log("New event received:", message.data);
-          // Add the new event to the elections list
           setElections((prevElections) => {
             const updatedElections = [...prevElections, message.data];
-            // Sort events by start date and time
-            const sortedElections = updatedElections.sort((a, b) => {
-              const aDateTime = new Date(
-                `${a.startDate || ""}T${a.startTime || ""}`
-              );
-              const bDateTime = new Date(
-                `${b.startDate || ""}T${b.startTime || ""}`
-              );
-              return aDateTime.getTime() - bDateTime.getTime();
-            });
-            // Save updated elections to localStorage
+            const sortedElections = sortElectionsByDateTime(updatedElections);
             localStorage.setItem(
               "upcomingElections",
               JSON.stringify(sortedElections)
@@ -50,21 +53,55 @@ const UpcomingElections = () => {
           });
         }
       } catch (error) {
-        console.error("Error parsing WebSocket message:", error);
-      } finally {
-        setIsLoading(false); // Mark loading as complete
+        console.error("Error processing WebSocket message:", error);
       }
     };
+  };
 
-    // Handle WebSocket errors
-    socket.onerror = (error) => {
-      console.error("WebSocket error:", error);
-      setIsLoading(false); // Mark loading as complete
-    };
+  const loadInitialEvents = async () => {
+    try {
+      // First load from localStorage
+      const savedElections = localStorage.getItem("upcomingElections");
+      if (savedElections) {
+        setElections(JSON.parse(savedElections));
+      }
 
-    // Cleanup WebSocket connection on component unmount
+      // Then fetch fresh data from server
+      const response = await fetch("http://localhost:5000/api/events");
+      if (!response.ok)
+        throw new Error(`HTTP error! Status: ${response.status}`);
+
+      const data = await response.json();
+      const sortedEvents = sortElectionsByDateTime(data);
+      setElections(sortedEvents);
+      localStorage.setItem("upcomingElections", JSON.stringify(sortedEvents));
+    } catch (error) {
+      console.error("Error loading events:", error);
+      toast.error("Failed to load events");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const sortElectionsByDateTime = (events) => {
+    return events.sort((a, b) => {
+      const aDateTime = new Date(`${a.startDate}T${a.startTime}`);
+      const bDateTime = new Date(`${b.startDate}T${b.startTime}`);
+      return aDateTime.getTime() - bDateTime.getTime();
+    });
+  };
+
+  useEffect(() => {
+    loadInitialEvents();
+    connectWebSocket();
+
     return () => {
-      socket.close();
+      if (wsRef.current) {
+        wsRef.current.close();
+      }
+      if (reconnectTimeoutRef.current) {
+        clearTimeout(reconnectTimeoutRef.current);
+      }
     };
   }, []);
 
