@@ -12,6 +12,8 @@ contract Voting {
         Candidate[] candidates;
         uint256 endTime;
         bool active;
+        bool isSecure;
+        mapping(address => bool) whitelistedVoters;
     }
 
     mapping(uint256 => Event) public events;
@@ -28,18 +30,27 @@ contract Voting {
     function createEvent(
         string memory _title,
         string[] memory _candidateNames,
-        uint256 _durationInMinutes
+        uint256 _durationInMinutes,
+        bool _isSecure,
+        address[] memory _whitelistedVoters
     ) public returns (uint256) {
         eventCount++;
         Event storage e = events[eventCount];
         e.title = _title;
         e.endTime = block.timestamp + (_durationInMinutes * 1 minutes);
         e.active = true;
+        e.isSecure = _isSecure;
 
         for (uint i = 0; i < _candidateNames.length; i++) {
             e.candidates.push(
                 Candidate({name: _candidateNames[i], voteCount: 0})
             );
+        }
+
+        if (_isSecure) {
+            for (uint i = 0; i < _whitelistedVoters.length; i++) {
+                e.whitelistedVoters[_whitelistedVoters[i]] = true;
+            }
         }
 
         emit EventCreated(eventCount, _title);
@@ -55,6 +66,13 @@ contract Voting {
             _candidateIndex < events[_eventId].candidates.length,
             "Invalid candidate"
         );
+
+        if (events[_eventId].isSecure) {
+            require(
+                events[_eventId].whitelistedVoters[msg.sender],
+                "Address not whitelisted"
+            );
+        }
 
         events[_eventId].candidates[_candidateIndex].voteCount++;
         hasVoted[msg.sender][_eventId] = true;

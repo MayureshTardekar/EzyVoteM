@@ -10,11 +10,13 @@ async function main() {
     const address = await voting.getAddress();
     console.log("Voting contract deployed to:", address);
 
-    // Create a test event to verify it works
+    // Create a test event with the correct parameters
     const tx = await voting.createEvent(
-      "Test Election",
-      ["Candidate A", "Candidate B"],
-      60 // 60 minutes duration
+      "Test Election",                    // title
+      ["Candidate A", "Candidate B"],     // candidate names
+      60,                                 // duration in minutes
+      false,                              // isSecure
+      []                                  // whitelistedVoters (empty array for non-secure election)
     );
     await tx.wait();
     console.log("Test event created successfully");

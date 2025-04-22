@@ -38,8 +38,8 @@
       ]
     },
     "C:\\Users\\MAYURESH\\Desktop\\EzyVoteM\\contracts\\Voting.sol": {
-      "lastModificationDate": 1744820924434,
-      "contentHash": "e63dc8aca095b8dfd444ae5a3d072a23",
+      "lastModificationDate": 1745336972127,
+      "contentHash": "8b61f620081f39043970ad4d016f6291",
       "sourceName": "contracts/Voting.sol",
       "solcConfig": {
         "version": "0.8.28",

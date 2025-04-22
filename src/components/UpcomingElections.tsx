@@ -257,7 +257,12 @@ const UpcomingElections = () => {
             return (
               <Card
                 key={election.id}
-                className="p-6 text-center hover:shadow-lg transition-shadow relative"
+                className={`p-6 text-center hover:shadow-lg transition-shadow relative
+                  ${
+                    election.isSecure
+                      ? "border-2 border-amber-300 bg-gradient-to-b from-amber-50 to-white"
+                      : ""
+                  }`}
               >
                 {/* Status Badge */}
                 <div
@@ -271,6 +276,14 @@ const UpcomingElections = () => {
                 >
                   {status}
                 </div>
+
+                {/* Secure Badge */}
+                {election.isSecure && (
+                  <div className="absolute top-2 left-2 px-2 py-1 text-xs font-semibold rounded bg-amber-500 text-white">
+                    Secure
+                  </div>
+                )}
+
                 {/* Delete Button for Ended Elections */}
                 {status === "Ended" && (
                   <button
@@ -280,7 +293,11 @@ const UpcomingElections = () => {
                     <X className="w-4 h-4" />
                   </button>
                 )}
-                <h3 className="text-xl font-semibold text-gray-900 mb-2">
+                <h3
+                  className={`text-xl font-semibold mb-2 ${
+                    election.isSecure ? "text-amber-800" : "text-gray-900"
+                  }`}
+                >
                   {election.title}
                 </h3>
                 <p className="text-gray-600 mb-4">{election.candidateBio}</p>

@@ -92,8 +92,27 @@ let votes = [];
 
 // Record a vote
 app.post("/api/vote", async (req, res) => {
-  console.log("🗳️ Received vote request:", req.body);
   const { eventId, candidateIndex, signature, walletAddress } = req.body;
+
+  // Find the event
+  const event = events.find((e) => e.id === parseInt(eventId));
+  if (!event) {
+    return res.status(404).json({ message: "Event not found" });
+  }
+
+  // Check whitelist for secure events - make sure addresses are normalized
+  if (event.isSecure) {
+    const normalizedAddress = walletAddress.toLowerCase();
+    const normalizedWhitelist = event.voterAddresses.map((addr) =>
+      addr.toLowerCase()
+    );
+
+    if (!normalizedWhitelist.includes(normalizedAddress)) {
+      return res.status(403).json({
+        message: "Address not whitelisted for this secure event",
+      });
+    }
+  }
 
   // Validate input data
   if (
@@ -117,13 +136,6 @@ app.post("/api/vote", async (req, res) => {
   } catch (error) {
     console.error("❌ Error verifying signature:", error.message);
     return res.status(400).json({ message: "Invalid signature format" });
-  }
-
-  // Find the event
-  const event = events.find((e) => e.id === parseInt(eventId));
-  if (!event) {
-    console.error("❌ Event not found for ID:", eventId);
-    return res.status(404).json({ message: "Event not found" });
   }
 
   // Validate candidate index
@@ -179,107 +191,75 @@ app.get("/api/events/:id", async (req, res) => {
 });
 
 // Create a new event
-app.post("/api/create-event", async (req, res) => {
-  const {
-    title,
-    candidates,
-    manifesto,
-    voterLimit,
-    startDate,
-    startTime,
-    endDate,
-    endTime,
-  } = req.body;
-
-  console.log("📝 Received request to create event:", req.body);
-
-  // Validate input data
-  if (
-    !title ||
-    !Array.isArray(candidates) ||
-    candidates.length < 2 ||
-    !voterLimit ||
-    !startDate ||
-    !startTime ||
-    !endDate ||
-    !endTime
-  ) {
-    console.error("❌ Invalid input data:", req.body);
-    return res.status(400).json({
-      message: "Invalid input data",
-      details: {
-        title,
-        candidates,
-        manifesto,
-        voterLimit,
-        startDate,
-        startTime,
-        endDate,
-        endTime,
-      },
-    });
-  }
-
-  // Validate each candidate
-  for (const candidate of candidates) {
-    if (!candidate.name || !candidate.bio) {
-      console.error("❌ Each candidate must have a name and bio:", candidate);
-      return res.status(400).json({
-        message: "Each candidate must have a name and bio",
-      });
-    }
-  }
-
+app.post("/api/events", async (req, res) => {
   try {
-    const newEvent = {
-      id: Date.now(),
+    console.log("Received event creation request:", req.body);
+    
+    const {
       title,
-      candidates: candidates.map((candidate) => ({
-        name: candidate.name,
-        bio: candidate.bio,
-        votes: 0,
-      })),
+      candidates,
       manifesto,
-      voterLimit: parseInt(voterLimit, 10),
+      voterLimit,
       startDate,
       startTime,
       endDate,
       endTime,
+      isSecure,
+      voterAddresses
+    } = req.body;
+
+    // Validate required fields
+    if (!title) {
+      return res.status(400).json({ message: "Title is required" });
+    }
+    
+    if (!candidates || candidates.length < 2) {
+      return res.status(400).json({ message: "At least two candidates are required" });
+    }
+
+    if (isSecure && (!voterAddresses || voterAddresses.length === 0)) {
+      return res.status(400).json({ message: "Secure events require at least one whitelisted address" });
+    }
+
+    const newEvent = {
+      id: Date.now(),
+      title,
+      candidates: candidates.map(candidate => ({
+        name: candidate.name,
+        bio: candidate.bio || "",
+        votes: 0,
+      })),
+      manifesto: manifesto || "",
+      voterLimit: parseInt(voterLimit, 10) || 0,
+      startDate,
+      startTime,
+      endDate,
+      endTime,
+      isSecure,
+      voterAddresses: isSecure ? voterAddresses.map(addr => addr.toLowerCase()) : [],
+      active: true,
+      createdAt: new Date().toISOString()
     };
 
-    // Save the event in memory
+    // Add to events array
     events.push(newEvent);
 
-    console.log("🎉 New event created:", newEvent);
-
-    // Broadcast the new event to all connected clients
+    // Broadcast to WebSocket clients
     broadcast({
       type: "newEvent",
-      data: {
-        id: newEvent.id,
-        title: newEvent.title,
-        candidates: newEvent.candidates.map((candidate) => ({
-          name: candidate.name,
-          bio: candidate.bio,
-        })),
-        manifesto: newEvent.manifesto,
-        voterLimit: newEvent.voterLimit,
-        startDate: newEvent.startDate,
-        startTime: newEvent.startTime,
-        endDate: newEvent.endDate,
-        endTime: newEvent.endTime,
-      },
+      data: newEvent,
     });
 
-    return res.status(201).json({
+    console.log("Event created successfully:", newEvent);
+    res.status(201).json({
       message: "Event created successfully",
       event: newEvent,
     });
   } catch (error) {
-    console.error("❌ Error creating event:", error.message);
-    return res.status(500).json({
+    console.error("Server error creating event:", error);
+    res.status(500).json({ 
       message: "Internal server error",
-      error: error.message,
+      error: error.message 
     });
   }
 });

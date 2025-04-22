@@ -1,37 +1,20 @@
-useEffect(() => {
-  const socket = new WebSocket("ws://localhost:5000");
+import { useWebSocket } from '../hooks/useWebSocket';
 
-  socket.onopen = () => {
-    console.log("WebSocket connection established");
-  };
+const UpcomingElections = () => {
+  const [elections, setElections] = useState([]);
 
-  socket.onerror = (error) => {
-    console.error("WebSocket error:", error);
-    // Implement reconnection logic here if needed
-  };
-
-  socket.onmessage = (event) => {
-    try {
-      const message = JSON.parse(event.data);
-      if (message.type === "newEvent") {
-        console.log("New event received:", message.data);
-        setElections((prevElections) => {
-          const updatedElections = [...prevElections, message.data];
-          return updatedElections.sort((a, b) => {
-            const aDateTime = new Date(`${a.startDate}T${a.startTime}`);
-            const bDateTime = new Date(`${b.startDate}T${b.startTime}`);
-            return aDateTime.getTime() - bDateTime.getTime();
-          });
-        });
-      }
-    } catch (error) {
-      console.error("Error processing WebSocket message:", error);
+  useWebSocket((message) => {
+    if (message.type === "newEvent") {
+      console.log("New event received:", message.data);
+      setElections((prevElections) => {
+        const updatedElections = [...prevElections, message.data];
+        const sortedElections = sortElectionsByDateTime(updatedElections);
+        localStorage.setItem("upcomingElections", JSON.stringify(sortedElections));
+        return sortedElections;
+      });
     }
-  };
+  });
 
-  return () => {
-    if (socket.readyState === WebSocket.OPEN) {
-      socket.close();
-    }
-  };
-}, []);
+  // ... rest of your component code ...
+};
+
